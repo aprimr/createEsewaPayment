@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 
-export default async function (req) {
+export default async (req) => {
   try {
     if (!req.payload) {
       return { error: 'Missing payload' };
@@ -44,4 +44,4 @@ export default async function (req) {
   } catch (err) {
     return { error: err.message || 'Unexpected error' };
   }
-}
+};
