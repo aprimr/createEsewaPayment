@@ -1,11 +1,13 @@
 import crypto from 'crypto';
 
-export default async function (req, res) {
+export default async function (req) {
   try {
     const { userId } = JSON.parse(req.payload);
 
     if (!userId) {
-      return res.json({ error: 'Missing userId' });
+      return {
+        json: { error: 'Missing userId' },
+      };
     }
 
     const transaction_uuid = `premium-${userId}-${Date.now()}`;
@@ -21,23 +23,27 @@ export default async function (req, res) {
       .update(signData)
       .digest('base64');
 
-    return res.json({
-      esewaUrl: 'https://rc-epay.esewa.com.np/api/epay/main/v2/form',
-      payload: {
-        amount: total_amount,
-        tax_amount: '0',
-        product_delivery_charge: '0',
-        product_service_charge: '0',
-        total_amount,
-        transaction_uuid,
-        product_code,
-        success_url: `${baseSuccessURL}?userId=${userId}&txn=${transaction_uuid}`,
-        failure_url: baseFailureURL,
-        signed_field_names: 'total_amount,transaction_uuid,product_code',
-        signature,
+    return {
+      json: {
+        esewaUrl: 'https://rc-epay.esewa.com.np/api/epay/main/v2/form',
+        payload: {
+          amount: total_amount,
+          tax_amount: '0',
+          product_delivery_charge: '0',
+          product_service_charge: '0',
+          total_amount,
+          transaction_uuid,
+          product_code,
+          success_url: `${baseSuccessURL}?userId=${userId}&txn=${transaction_uuid}`,
+          failure_url: baseFailureURL,
+          signed_field_names: 'total_amount,transaction_uuid,product_code',
+          signature,
+        },
       },
-    });
+    };
   } catch (err) {
-    return res.json({ error: err.message || 'Unexpected error' });
+    return {
+      json: { error: err.message || 'Unexpected error' },
+    };
   }
 }
