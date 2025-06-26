@@ -1,35 +1,43 @@
-import { Client, Users } from 'node-appwrite';
+import crypto from 'crypto';
 
-// This Appwrite function will be executed every time your function is triggered
-export default async ({ req, res, log, error }) => {
-  // You can use the Appwrite SDK to interact with other services
-  // For this example, we're using the Users service
-  const client = new Client()
-    .setEndpoint(process.env.APPWRITE_FUNCTION_API_ENDPOINT)
-    .setProject(process.env.APPWRITE_FUNCTION_PROJECT_ID)
-    .setKey(req.headers['x-appwrite-key'] ?? '');
-  const users = new Users(client);
-
+export default async function (req, res) {
   try {
-    const response = await users.list();
-    // Log messages and errors to the Appwrite Console
-    // These logs won't be seen by your end users
-    log(`Total users: ${response.total}`);
-  } catch(err) {
-    error("Could not list users: " + err.message);
-  }
+    const { userId } = JSON.parse(req.payload);
 
-  // The req object contains the request data
-  if (req.path === "/ping") {
-    // Use res object to respond with text(), json(), or binary()
-    // Don't forget to return a response!
-    return res.text("Pong");
-  }
+    if (!userId) {
+      return res.json({ error: 'Missing userId' });
+    }
 
-  return res.json({
-    motto: "Build like a team of hundreds_",
-    learn: "https://appwrite.io/docs",
-    connect: "https://appwrite.io/discord",
-    getInspired: "https://builtwith.appwrite.io",
-  });
-};
+    const transaction_uuid = `premium-${userId}-${Date.now()}`;
+    const total_amount = '299';
+    const product_code = process.env.MERCHANT_ID;
+    const secret = process.env.ESEWA_SECRET;
+    const baseSuccessURL = process.env.SUCCESS_URL;
+    const baseFailureURL = process.env.FAILURE_URL;
+
+    const signData = `total_amount=${total_amount},transaction_uuid=${transaction_uuid},product_code=${product_code}`;
+    const signature = crypto
+      .createHmac('sha256', secret)
+      .update(signData)
+      .digest('base64');
+
+    return res.json({
+      esewaUrl: 'https://rc-epay.esewa.com.np/api/epay/main/v2/form',
+      payload: {
+        amount: total_amount,
+        tax_amount: '0',
+        product_delivery_charge: '0',
+        product_service_charge: '0',
+        total_amount,
+        transaction_uuid,
+        product_code,
+        success_url: `${baseSuccessURL}?userId=${userId}&txn=${transaction_uuid}`,
+        failure_url: baseFailureURL,
+        signed_field_names: 'total_amount,transaction_uuid,product_code',
+        signature,
+      },
+    });
+  } catch (err) {
+    return res.json({ error: err.message || 'Unexpected error' });
+  }
+}
