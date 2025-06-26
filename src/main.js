@@ -2,7 +2,9 @@ import crypto from 'crypto';
 
 export default async function ({ req, res, log, error }) {
   try {
-    if (!req.payload) {
+    console.log(res);
+
+    if (!req.body) {
       return res.json({ error: 'Missing payload' });
     }
 
