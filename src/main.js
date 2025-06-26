@@ -2,13 +2,11 @@ import crypto from 'crypto';
 
 export default async function ({ req, res, log, error }) {
   try {
-    console.log(res);
-
     if (!req.body) {
       return res.json({ error: 'Missing payload' });
     }
 
-    const { userId } = JSON.parse(req.payload);
+    const { userId } = JSON.parse(req.body);
     if (!userId) {
       return res.json({ error: 'Missing userId' });
     }
