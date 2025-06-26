@@ -1,15 +1,14 @@
 import crypto from 'crypto';
 
-export default async (req) => {
+export default async function ({ req, res, log, error }) {
   try {
     if (!req.payload) {
-      return { error: 'Missing payload' };
+      return res.json({ error: 'Missing payload' });
     }
 
     const { userId } = JSON.parse(req.payload);
-
     if (!userId) {
-      return { error: 'Missing userId' };
+      return res.json({ error: 'Missing userId' });
     }
 
     const transaction_uuid = `premium-${userId}-${Date.now()}`;
@@ -25,7 +24,7 @@ export default async (req) => {
       .update(signData)
       .digest('base64');
 
-    return {
+    return res.json({
       esewaUrl: 'https://rc-epay.esewa.com.np/api/epay/main/v2/form',
       payload: {
         amount: total_amount,
@@ -40,8 +39,9 @@ export default async (req) => {
         signed_field_names: 'total_amount,transaction_uuid,product_code',
         signature,
       },
-    };
+    });
   } catch (err) {
-    return { error: err.message || 'Unexpected error' };
+    error(err);
+    return res.json({ error: err.message || 'Unexpected error' });
   }
-};
+}
