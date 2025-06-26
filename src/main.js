@@ -1,9 +1,17 @@
+import crypto from 'crypto';
+
 export default async function (req, res) {
   try {
+    // Make sure req.payload exists and is a string
+    if (!req.payload) {
+      res.status(400).json({ error: 'Missing payload' });
+      return;
+    }
+
     const { userId } = JSON.parse(req.payload);
 
     if (!userId) {
-      res.json({ error: 'Missing userId' });
+      res.status(400).json({ error: 'Missing userId' });
       return;
     }
 
@@ -20,7 +28,7 @@ export default async function (req, res) {
       .update(signData)
       .digest('base64');
 
-    res.json({
+    res.status(200).json({
       esewaUrl: 'https://rc-epay.esewa.com.np/api/epay/main/v2/form',
       payload: {
         amount: total_amount,
@@ -37,6 +45,6 @@ export default async function (req, res) {
       },
     });
   } catch (err) {
-    res.json({ error: err.message || 'Unexpected error' });
+    res.status(500).json({ error: err.message || 'Unexpected error' });
   }
 }
