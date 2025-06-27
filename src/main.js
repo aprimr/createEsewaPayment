@@ -34,7 +34,7 @@ export default async function ({ req, res, log, error }) {
         total_amount,
         transaction_uuid,
         product_code,
-        success_url: `${baseSuccessURL}?userId=${userId}&txn=${transaction_uuid}`,
+        success_url: `${baseSuccessURL}?txn=${transaction_uuid}&userId=${userId}`,
         failure_url: baseFailureURL,
         signed_field_names: 'total_amount,transaction_uuid,product_code',
         signature,
